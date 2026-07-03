@@ -134,26 +134,32 @@ async function seed() {
       },
     ];
 
+    const daysAgo = (n) => { const d = new Date(); d.setDate(d.getDate() - n); return d.toISOString(); };
+    const NOT_DRAFT = ['Submitted','Under Review','Credit Check','Approved','Rejected','Disbursed'];
+    const REVIEWED  = ['Under Review','Credit Check','Approved','Rejected','Disbursed'];
+    const APPROVED  = ['Approved','Disbursed'];
+
     const appIds = [];
     for (const app of apps) {
+      const submittedAt  = NOT_DRAFT.includes(app.status) ? daysAgo(10) : null;
+      const reviewedAt   = REVIEWED.includes(app.status)  ? daysAgo(7)  : null;
+      const approvedAt   = APPROVED.includes(app.status)  ? daysAgo(3)  : null;
+      const disbursedAt  = app.status === 'Disbursed'     ? daysAgo(1)  : null;
+
       const res = await client.query(`
         INSERT INTO loan_applications
           (application_number, borrower_id, assigned_officer, loan_type, loan_amount, tenure_months,
            interest_rate, purpose, employment_type, employer_name, monthly_income, monthly_expenses,
            existing_emi, status, rejection_reason, approved_amount, approved_rate, approved_tenure,
            submitted_at, reviewed_at, approved_at, disbursed_at)
-        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,
-          CASE WHEN $14 NOT IN ('Draft') THEN NOW() - INTERVAL '10 days' ELSE NULL END,
-          CASE WHEN $14 IN ('Under Review','Credit Check','Approved','Rejected','Disbursed') THEN NOW() - INTERVAL '7 days' ELSE NULL END,
-          CASE WHEN $14 IN ('Approved','Disbursed') THEN NOW() - INTERVAL '3 days' ELSE NULL END,
-          CASE WHEN $14 = 'Disbursed' THEN NOW() - INTERVAL '1 day' ELSE NULL END
-        )
+        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22)
         RETURNING id
       `, [
         app.num, app.bid, app.officer, app.type, app.amount, app.tenure,
         app.rate, app.purpose, app.emp, app.employer, app.income, app.expenses,
         app.emi, app.status, app.rejectionReason || null,
-        app.approvedAmount || null, app.approvedRate || null, app.approvedTenure || null
+        app.approvedAmount || null, app.approvedRate || null, app.approvedTenure || null,
+        submittedAt, reviewedAt, approvedAt, disbursedAt
       ]);
       appIds.push(res.rows[0].id);
     }
