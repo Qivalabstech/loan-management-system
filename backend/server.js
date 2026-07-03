@@ -28,6 +28,9 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+app.get('/health', (req, res) => res.json({ status: 'ok', time: new Date().toISOString() }));
+app.get('/api/health', (req, res) => res.json({ status: 'ok', time: new Date().toISOString() }));
+
 app.use('/api/auth', require('./src/routes/auth'));
 app.use('/api/leads', require('./src/routes/leads'));
 app.use('/api/applications', require('./src/routes/applications'));
@@ -37,8 +40,6 @@ app.use('/api/payments', require('./src/routes/payments'));
 app.use('/api/collections', require('./src/routes/collections'));
 app.use('/api/reports', require('./src/routes/reports'));
 app.use('/api/documents', require('./src/routes/documents'));
-
-app.get('/api/health', (req, res) => res.json({ status: 'ok', time: new Date().toISOString() }));
 
 app.use((err, req, res, next) => {
   console.error(err.stack);
