@@ -1,0 +1,16 @@
+{
+  "name": "loan-management-system",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently \"npm run dev --workspace=backend\" \"npm run dev --workspace=frontend\"",
+    "db:schema": "psql $DATABASE_URL -f backend/database/schema.sql",
+    "db:seed": "node backend/database/seed.js"
+  },
+  "workspaces": [
+    "backend",
+    "frontend"
+  ],
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
